@@ -41,16 +41,27 @@ def model_creation(path: str, num_iter: int, test_size: float):
     std_f1 = np.std(f1_scores)
 
     print("avg accuracy:", avg_acc, ", std dev:", std_acc, ", avg f1:", avg_f1, ", std dev:", std_f1)
+    return avg_acc,std_acc,avg_f1,std_f1
+    
 path = './data/bank-full.csv'
 model_creation(path, 10, 0.3) # 70/30 split
 ########################### TASK 3 ##################################################################################
+data = {}
+avg_accs_list = []
+std_accs_list = []
+avg_f1_list = []
+std_f1_list = []
+for i in range(9):
+    avg_acc, std_acc, avg_f1, std_f1 = model_creation(path, 10, ((9-i)*10)/100) # from 10% test to 90% test
+    avg_accs_list.append(avg_acc)
+    std_accs_list.append(std_acc)
+    avg_f1_list.append(avg_f1)
+    std_f1_list.append(std_f1)
 
-model_creation(path, 10, 0.9) # 10/90 split
-model_creation(path, 10, 0.8) # 20/80 split
-model_creation(path, 10, 0.7)
-model_creation(path, 10, 0.6)
-model_creation(path, 10, 0.5)
-model_creation(path, 10, 0.4)
-model_creation(path, 10, 0.3)
-model_creation(path, 10, 0.2)
-model_creation(path, 10, 0.1)
+data['average accuracies'] = avg_accs_list
+data['accuracy stds'] = std_accs_list
+data['average f1 scores'] = avg_f1_list
+data['f1 stds'] = std_f1_list
+
+df = pd.DataFrame(data)
+print(df)
