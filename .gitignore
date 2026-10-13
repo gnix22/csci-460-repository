@@ -1,0 +1,14 @@
+# latex related ignore extensions
+*.snm
+*.nav
+*.out
+*.toc
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.run.xml
+*.synctex.gz
