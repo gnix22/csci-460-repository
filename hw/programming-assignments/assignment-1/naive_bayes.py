@@ -51,17 +51,20 @@ avg_accs_list = []
 std_accs_list = []
 avg_f1_list = []
 std_f1_list = []
+iter_count = []
 for i in range(9):
     avg_acc, std_acc, avg_f1, std_f1 = model_creation(path, 10, ((9-i)*10)/100) # from 10% test to 90% test
     avg_accs_list.append(avg_acc)
     std_accs_list.append(std_acc)
     avg_f1_list.append(avg_f1)
     std_f1_list.append(std_f1)
+    iter_count.append(i+1)
 
+data['iteration'] = iter_count
 data['average accuracies'] = avg_accs_list
 data['accuracy stds'] = std_accs_list
 data['average f1 scores'] = avg_f1_list
 data['f1 stds'] = std_f1_list
 
 df = pd.DataFrame(data)
-print(df)
+print(df.to_latex(index=False, float_format="{:.4f}".format))
