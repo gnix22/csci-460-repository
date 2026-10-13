@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay, f1_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
+import matplotlib.pyplot as plt
 ########################### TASK 1 ##################################################################################
 # data preprocessing method
 def data_prep(path: str):
@@ -53,7 +54,7 @@ avg_f1_list = []
 std_f1_list = []
 iter_count = []
 for i in range(9):
-    avg_acc, std_acc, avg_f1, std_f1 = model_creation(path, 10, ((9-i)*10)/100) # from 10% test to 90% test
+    avg_acc, std_acc, avg_f1, std_f1 = model_creation(path, 10, ((9-i)*10)/100) # from 90% test to 10% test
     avg_accs_list.append(avg_acc)
     std_accs_list.append(std_acc)
     avg_f1_list.append(avg_f1)
@@ -65,6 +66,31 @@ data['average accuracies'] = avg_accs_list
 data['accuracy stds'] = std_accs_list
 data['average f1 scores'] = avg_f1_list
 data['f1 stds'] = std_f1_list
+
+fig, axs = plt.subplots(2,2,figsize=(10,4))
+
+axs[0,0].plot(data['iteration'], data['average accuracies'])
+axs[0,0].set_title('average accuracy as training data increases')
+axs[0,0].set_xlabel('10$x$% set for training')
+axs[0,0].set_ylabel('accuracy')
+
+axs[0,1].plot(data['iteration'],data['accuracy stds'])
+axs[0,1].set_title('standard deviations of accuracies')
+axs[0,1].set_xlabel('10$x$% set for training')
+axs[0,1].set_ylabel('accuracy standard deviation')
+
+axs[1,0].plot(data['iteration'], data['average f1 scores'])
+axs[1,0].set_title('average f1 scores as training data increases')
+axs[1,0].set_xlabel('10$x$% set for training')
+axs[1,0].set_ylabel('average f1 scores')
+
+axs[1,1].plot(data['iteration'],data['f1 stds'])
+axs[1,1].set_title('standard deviations of accuracies')
+axs[1,1].set_xlabel('10$x$% set for training')
+axs[1,1].set_ylabel('f1 standard deviation')
+
+plt.tight_layout()
+plt.show()
 
 df = pd.DataFrame(data)
 print(df.to_latex(index=False, float_format="{:.4f}".format))
