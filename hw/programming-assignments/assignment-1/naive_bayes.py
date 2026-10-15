@@ -10,12 +10,15 @@ import matplotlib.pyplot as plt
 def data_prep(path: str):
     df = pd.read_csv(path, delimiter=';')
     encoded_df = pd.get_dummies(df, columns=['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'y'], dtype='int64', drop_first=True)
+    # testing performance with dropping unknown values along with nan
     return encoded_df.dropna()
 
 def model_creation(path: str, num_iter: int, test_size: float):
     df = data_prep(path)
-    x = df.drop(columns=['y_yes'])
-    y = df['y_yes']
+    # testing if dropping unknown columns increases performance
+    df_drop_unknown = df.drop(columns=[col for col in df.columns if col.endswith('_unknown')])
+    x = df_drop_unknown.drop(columns=['y_yes'])
+    y = df_drop_unknown['y_yes']
 ########################### TASK 2 ##################################################################################
     # using sklearns train/test split, we can set stratified random sample with some desired split percentage (in this case 70%)
     # since assignment wants different number of iterations for mean and std dev of the model, run num_iter times 
