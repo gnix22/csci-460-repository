@@ -5,20 +5,14 @@ from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDis
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 import matplotlib.pyplot as plt
+# for increasing speed via multi core processing
+from multiprocessing import Pool
 ########################### TASK 1 ##################################################################################
-# data preprocessing method
-def data_prep(path: str):
-    df = pd.read_csv(path, delimiter=';')
-    encoded_df = pd.get_dummies(df, columns=['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'y'], dtype='int64', drop_first=True)
-    # testing performance with dropping unknown values along with nan
-    return encoded_df.dropna()
-
-def model_creation(path: str, num_iter: int, test_size: float):
-    df = data_prep(path)
-    # testing if dropping unknown columns increases performance
-    df_drop_unknown = df.drop(columns=[col for col in df.columns if col.endswith('_unknown')])
-    x = df_drop_unknown.drop(columns=['y_yes'])
-    y = df_drop_unknown['y_yes']
+def model_creation(args):
+    path, num_iter, test_size = args
+    df = pd.read_csv(path)
+    x = df.drop(columns=['y_yes'])
+    y = df['y_yes']
 ########################### TASK 2 ##################################################################################
     # using sklearns train/test split, we can set stratified random sample with some desired split percentage (in this case 70%)
     # since assignment wants different number of iterations for mean and std dev of the model, run num_iter times 
@@ -36,64 +30,80 @@ def model_creation(path: str, num_iter: int, test_size: float):
         f1 = f1_score(y_pred, y_test,average='weighted')
         accuracy_scores.append(accuracy)
         f1_scores.append(f1)
-        print(f"The accuracy of my Naive Bayes Model for iteration {_} is:", accuracy)
-        print(f"The F1 Score of my Naive Bayes Model for iteration {_} is:", f1)
+        #print(f"The accuracy of my Naive Bayes Model for iteration {_} is:", accuracy)
+        #print(f"The F1 Score of my Naive Bayes Model for iteration {_} is:", f1)
 
     avg_acc = np.mean(accuracy_scores)
     avg_f1 = np.mean(f1_scores)
     std_acc = np.std(accuracy_scores)
     std_f1 = np.std(f1_scores)
 
-    print("avg accuracy:", avg_acc, ", std dev:", std_acc, ", avg f1:", avg_f1, ", std dev:", std_f1)
+    #print("avg accuracy:", avg_acc, ", std dev:", std_acc, ", avg f1:", avg_f1, ", std dev:", std_f1)
     return avg_acc,std_acc,avg_f1,std_f1
-    
-path = './data/bank-full.csv'
-model_creation(path, 10, 0.3) # 70/30 split
+
 ########################### TASK 3 ##################################################################################
-data = {}
-avg_accs_list = []
-std_accs_list = []
-avg_f1_list = []
-std_f1_list = []
-iter_count = []
-for i in range(9):
-    avg_acc, std_acc, avg_f1, std_f1 = model_creation(path, 10, ((9-i)*10)/100) # from 90% test to 10% test
-    avg_accs_list.append(avg_acc)
-    std_accs_list.append(std_acc)
-    avg_f1_list.append(avg_f1)
-    std_f1_list.append(std_f1)
-    iter_count.append(i+1)
+if __name__ == "__main__":
+    path = './data/cleaned_data.csv'
+    # test the 0.7 train, 0.3 split, outlined in assignment
+    #first_run = (path, 10, 0.3)
+    #model_creation(first_run)
+    # for multi processing, set test sizes here to pass as arg
+    tasks = []
+    for i in range(9):
+        test_size = ((9 - i) * 10) / 100  # generates test size of 0.90 down to 0.10
+        num_iterations = 10
+        tasks.append((path, num_iterations, test_size))
+    # use 'processes=' to specify number of paralell processes to use
+    with Pool(processes=10) as workers:
+        results = workers.map(model_creation, tasks)
 
-data['iteration'] = iter_count
-data['average accuracies'] = avg_accs_list
-data['accuracy stds'] = std_accs_list
-data['average f1 scores'] = avg_f1_list
-data['f1 stds'] = std_f1_list
+    avg_accs_list = []
+    std_accs_list = []
+    avg_f1_list = []
+    std_f1_list = []
+    iter_count = []
 
-fig, axs = plt.subplots(2,2,figsize=(10,4))
+    # return results in sequential order of training size increments
+    for i, res in enumerate(results):
+        avg_acc, std_acc, avg_f1, std_f1 = res
+        avg_accs_list.append(avg_acc)
+        std_accs_list.append(std_acc)
+        avg_f1_list.append(avg_f1)
+        std_f1_list.append(std_f1)
+        iter_count.append(i + 1)
 
-axs[0,0].plot(data['iteration'], data['average accuracies'])
-axs[0,0].set_title('average accuracy as training data increases')
-axs[0,0].set_xlabel('10$x$% set for training')
-axs[0,0].set_ylabel('accuracy')
+    data = {
+        'iteration': iter_count,
+        'average accuracies': avg_accs_list,
+        'accuracy stds': std_accs_list,
+        'average f1 scores': avg_f1_list,
+        'f1 stds': std_f1_list
+    }
 
-axs[0,1].plot(data['iteration'],data['accuracy stds'])
-axs[0,1].set_title('standard deviations of accuracies')
-axs[0,1].set_xlabel('10$x$% set for training')
-axs[0,1].set_ylabel('accuracy standard deviation')
+    df = pd.DataFrame(data)
+    print(df.to_latex(index=False, float_format="{:.4f}".format))
 
-axs[1,0].plot(data['iteration'], data['average f1 scores'])
-axs[1,0].set_title('average f1 scores as training data increases')
-axs[1,0].set_xlabel('10$x$% set for training')
-axs[1,0].set_ylabel('average f1 scores')
+#fig, axs = plt.subplots(2,2,figsize=(10,4))
 
-axs[1,1].plot(data['iteration'],data['f1 stds'])
-axs[1,1].set_title('standard deviations of accuracies')
-axs[1,1].set_xlabel('10$x$% set for training')
-axs[1,1].set_ylabel('f1 standard deviation')
+#axs[0,0].plot(data['iteration'], data['average accuracies'])
+#axs[0,0].set_title('average accuracy as training data increases')
+#axs[0,0].set_xlabel('10$x$% set for training')
+#axs[0,0].set_ylabel('accuracy')
 
-plt.tight_layout()
-plt.show()
+#axs[0,1].plot(data['iteration'],data['accuracy stds'])
+#axs[0,1].set_title('standard deviations of accuracies')
+#axs[0,1].set_xlabel('10$x$% set for training')
+#axs[0,1].set_ylabel('accuracy standard deviation')
 
-df = pd.DataFrame(data)
-print(df.to_latex(index=False, float_format="{:.4f}".format))
+#axs[1,0].plot(data['iteration'], data['average f1 scores'])
+#axs[1,0].set_title('average f1 scores as training data increases')
+#axs[1,0].set_xlabel('10$x$% set for training')
+#axs[1,0].set_ylabel('average f1 scores')
+
+#axs[1,1].plot(data['iteration'],data['f1 stds'])
+#axs[1,1].set_title('standard deviations of accuracies')
+#axs[1,1].set_xlabel('10$x$% set for training')
+#axs[1,1].set_ylabel('f1 standard deviation')
+
+#plt.tight_layout()
+#plt.show()
