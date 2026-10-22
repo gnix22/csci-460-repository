@@ -1,3 +1,14 @@
+######################################################
+
+#  Student Name: Garrett Nix
+
+#  Course Code: CSCI 460 -- Fall 2026
+
+#  Assignment Due Date: 25-10-2026
+
+#  GitHub Link: https://github.com/gnix22/csci-460-repository
+
+######################################################
 import pandas as pd
 import numpy as np
 # import performance metric libraries
@@ -20,7 +31,7 @@ def model_creation(args):
     f1_scores = []
     print('############################## test size: ', test_size, '############################################################')
     for _ in range(num_iter):
-        x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=test_size,stratify=y) # y signifies we're stratifying on the target.
+        x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=test_size,stratify=y, random_state=_) # y signifies we're stratifying on the target.
 
         model = GaussianNB()
         model.fit(x_train,y_train)
@@ -83,27 +94,29 @@ if __name__ == "__main__":
     df = pd.DataFrame(data)
     print(df.to_latex(index=False, float_format="{:.4f}".format))
 
-#fig, axs = plt.subplots(2,2,figsize=(10,4))
+    fig, axs = plt.subplots(2,2,figsize=(10,4))
 
-#axs[0,0].plot(data['iteration'], data['average accuracies'])
-#axs[0,0].set_title('average accuracy as training data increases')
-#axs[0,0].set_xlabel('10$x$% set for training')
-#axs[0,0].set_ylabel('accuracy')
+    axs[0,0].plot(data['iteration'], data['average accuracies'])
+    axs[0,0].set_title('average accuracy as training data increases')
+    axs[0,0].set_xlabel('10$x$% set for training')
+    axs[0,0].set_ylabel('accuracy')
 
-#axs[0,1].plot(data['iteration'],data['accuracy stds'])
-#axs[0,1].set_title('standard deviations of accuracies')
-#axs[0,1].set_xlabel('10$x$% set for training')
-#axs[0,1].set_ylabel('accuracy standard deviation')
+    axs[0,1].plot(data['iteration'],data['accuracy stds'])
+    axs[0,1].set_title('standard deviations of accuracies')
+    axs[0,1].set_xlabel('10$x$% set for training')
+    axs[0,1].set_ylabel('accuracy standard deviation')
 
-#axs[1,0].plot(data['iteration'], data['average f1 scores'])
-#axs[1,0].set_title('average f1 scores as training data increases')
-#axs[1,0].set_xlabel('10$x$% set for training')
-#axs[1,0].set_ylabel('average f1 scores')
+    axs[1,0].plot(data['iteration'], data['average f1 scores'])
+    axs[1,0].set_title('average f1 scores as training data increases')
+    axs[1,0].set_xlabel('10$x$% set for training')
+    axs[1,0].set_ylabel('average f1 scores')
 
-#axs[1,1].plot(data['iteration'],data['f1 stds'])
-#axs[1,1].set_title('standard deviations of accuracies')
-#axs[1,1].set_xlabel('10$x$% set for training')
-#axs[1,1].set_ylabel('f1 standard deviation')
+    axs[1,1].plot(data['iteration'],data['f1 stds'])
+    axs[1,1].set_title('standard deviations of f1 scores')
+    axs[1,1].set_xlabel('10$x$% set for training')
+    axs[1,1].set_ylabel('f1 standard deviation')
 
-#plt.tight_layout()
-#plt.show()
+    plt.tight_layout()
+    plt.show()
+
+
